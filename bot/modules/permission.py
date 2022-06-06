@@ -9,8 +9,8 @@ from bot.helper.telegram_helper.filters import CustomFilters
 
 @new_thread
 def permissionNode(update, context):
-    LOGGER.info(f"User: {update.message.from_user.first_name} [{update.message.from_user.id}]")
     args = update.message.text.split(" ", maxsplit=2)
+    reply_to = update.message.reply_to_message
     link = ''
     access = ''
     if len(args) > 1:
@@ -18,7 +18,13 @@ def permissionNode(update, context):
         try:
             access = args[2]
         except IndexError:
-            access = "anyone"
+            pass
+    if reply_to is not None:
+        link = reply_to.text
+        try:
+            access = args[1]
+        except IndexError:
+            pass
     if is_gdrive_link(link):
         msg = sendMessage(f"<b>Setting permission:</b> <code>{link}</code>", context.bot, update.message)
         LOGGER.info(f"Setting permission: {link}")
@@ -28,7 +34,6 @@ def permissionNode(update, context):
         sendMessage(result, context.bot, update.message)
     else:
         sendMessage("<b>Send a Drive link along with command</b>", context.bot, update.message)
-        LOGGER.info("Setting permission: None")
 
 permission_handler = CommandHandler(BotCommands.PermissionCommand, permissionNode,
                                 filters=CustomFilters.owner_filter, run_async=True)
